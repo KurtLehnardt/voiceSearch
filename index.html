@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<head>
+    <meta author="Kurt Lehnardt">
+    <meta title="Rhyme Time">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body class="container-fluid">
+    <h1 class='text-center'>Voice Search</h1>
+    <h2 id='title' class='text-center'></h2>
+    <div id='imageResults' class='row col-md-12 justify-content-center'></div>
+</body>
+</style>
+<script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
+<script>
+const imgURL = 'https://api.unsplash.com/search/photos?client_id=mXyiPhumulV9g6AR4QGpKQ6WcWc89lXuxcZcqa512dk'
+const gifURL = 'https://api.giphy.com/v1/gifs/search?api_key=6ZeSbOpX2MeaiB4Ece5rfuOjOLoOmvWo&limit=20'
+const title = document.getElementById('title')
+const imageHolder = document.getElementById('imageResults')
+
+if (annyang) {
+    console.log('annyang')
+  // Let's define our first command. First the text we expect, and then the function it should call
+  var commands = {
+    'show me pictures of *tag': getImages,
+    'show me videos of *tag': getGifs,
+    'get weather for *location': getWeather,
+    'write lyrics about *rhyme': writeLyrics,
+    'tell me a joke about *subject': tellJoke
+    }
+
+  function getImages(tag) {
+    updateHeader(tag)
+    const url = `${imgURL}&query=${tag}&per_page=20`
+    const type = 'img'
+    updatePage(url, type)
+  }
+
+  function getGifs(tag){
+    updateHeader(tag)
+    const url = `${gifURL}&q=${tag}`
+    const type = 'gif'
+    updatePage(url, type)
+  }
+
+  function updateHeader(tag){
+    console.log(tag)
+    title.innerHTML = ''
+    title.innerHTML = tag
+  }
+
+  function updatePage(url, type){
+    fetch(url).then(response => response.json())
+        .then(res => {
+            imageHolder.innerHTML = ''
+
+        if (type === 'img'){
+            const imageArray = res.results
+            for (let i = 0; i < imageArray.length; i++){
+                let newImg = document.createElement('img')
+                newImg.classList.add('center-block')
+                newImg.classList.add('col-md-4')
+                newImg.src = imageArray[i].urls.regular
+                imageHolder.appendChild(newImg)
+            }
+        }
+        if (type === 'gif'){
+            const gifArray = res.data   
+            console.log('gifs', gifArray)
+            for (let i = 0; i < gifArray.length; i++){
+                let newVideo = document.createElement('video')
+                newVideo.classList.add('center-block')
+                newVideo.classList.add('col-md-4')
+                newVideo.setAttribute("autoplay", "true")
+                // newVideo.setAttribute("loop", "true")
+                // if (gifArray[i].images.hd) {
+                //     newVideo.src = gifArray[i].images.hd.mp4
+                // } else {
+                //     newVideo.src = gifArray[i].images.downsized_small.url
+                // }
+                newVideo.src = gifArray[i].images.looping.mp4
+                imageHolder.appendChild(newVideo)
+            }
+        }
+
+        if (type === 'weather'){
+            const weatherData = res.current
+            const list = document.createElement('ul')
+            const icon = document.createElement('img')
+            icon.src = weatherData.weather_icons[0]
+            list.innerHTML = `
+                the temperature is ${celciusToFahrenheit(weatherData.temperature)}F 
+                it is ${weatherData.weather_descriptions}
+                and there is a ${weatherData.precip} chance of rain.
+
+            `
+            imageHolder.appendChild(icon)
+            imageHolder.appendChild(list)
+        }
+        })
+  }
+
+  function celciusToFahrenheit(C){
+    return Math.round((C *= 9/5) + 32)
+  }
+
+  function getWeather(location){
+    console.log(location)
+    weatherURL = `http://api.weatherstack.com/forecast?access_key=268b187188e484af09aa89e797076663&query=${location}`
+    imageHolder.innerHTML = `Weather forecast for ${location}`
+    updatePage(weatherURL, 'weather')
+  }
+
+  function writeLyrics(rhyme){
+    console.log(rhyme)
+  }
+
+  function tellJoke(subject){
+    console.log(subject)
+  }
+
+  // Add our commands to annyang
+  annyang.addCommands(commands);
+
+  // Start listening. You can call this here, or attach this call to an event, button, etc.
+  (function listenToMe(){
+    annyang.start()
+    console.log('starting...')
+  }())
+}
+</script>
