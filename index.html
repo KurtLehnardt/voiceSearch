@@ -22,7 +22,9 @@ if (annyang) {
   // Let's define our first command. First the text we expect, and then the function it should call
   var commands = {
     'show me pictures of *tag': getImages,
+    'show me *tag pictures': getImages,
     'show me videos of *tag': getGifs,
+    'show me *tag videos': getGifs,
     'get weather for *location': getWeather,
     'write lyrics about *rhyme': writeLyrics,
     'tell me a joke about *subject': tellJoke
