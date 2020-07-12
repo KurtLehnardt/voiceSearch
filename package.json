@@ -4,7 +4,7 @@
   "description": "A tool to create poetry and lyrics",
   "main": "index.js",
   "scripts": {
-    "start": "node ./client/server.js"
+    "start": "node ./server.js"
   },
   "keywords": [
     "poetry",
